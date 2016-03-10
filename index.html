@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+
+	<title> RSCTA | Markov Chain generation Text</title>
+
+	<meta name="description" content="Presentation on text generation using Markov Chains">
+	<meta name="author" content="Jatin Dhankhar">
+
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+	<link rel="stylesheet" href="css/reveal.css">
+	<link rel="stylesheet" href="css/theme/blood.css" id="theme">
+
+	<!-- Code syntax highlighting -->
+	<link rel="stylesheet" href="lib/css/zenburn.css">
+
+	<!-- Printing and PDF exports -->
+	<script>
+		var link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.type = 'text/css';
+		link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+		document.getElementsByTagName('head')[0].appendChild(link);
+	</script>
+
+	<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+</head>
+
+<body>
+
+	<div class="reveal">
+
+		<!-- Any section element inside of this container is displayed as a slide -->
+		<div class="slides">
+			<section>
+				<h1>RSCTA</h1>
+				<h3>Text generation using Markov Chain</h3>
+				<p>
+					<ul>
+						<li><a href="https://jatindhankhar.in">Jatin Dhank<strong>h</strong>ar</a> / <a href="http://twitter.com/jatindhankhar_">@jatindhankhar_</a></li>
+						<li><a href="http://ishansharma.xyz/">Ishan Sharma</a> / <a href="#">@ishan</a> </li>
+						<li><a href="#">Kavish Bhatia</a> / <a href="#">@kavish</a> </li>
+					</ul>
+				</p>
+			</section>
+
+			<section>
+				<h2>Markov Chain</h2>
+				<p>
+					Transition States based upon a transition matrix
+				</p>
+				<div style="width: 1000px; height: 600px;">
+					<img src="img/Markovkate_01.svg" width="50%" height="70%">
+				</div>
+
+				<!--	<img src="" alt="Markov Chain" height="70%"/> -->
+				<a href="https://upload.wikimedia.org/wikipedia/commons/2/2b/"> <sub>Wikipedia</sub></a>
+			</section>
+
+			<!-- Example of nested vertical slides -->
+			<section>
+				<section>
+					<h2>Sentences as Markov Chain</h2>
+					<code>I eat an apple. But, I can eat an orange too</code>
+					<hr>
+					<code>
+           I -> eat,can
+				 </code> <b>P = 0.5</b>
+					<hr>
+					<code> eat -> an </code> <b>P = 1</b>
+				</section>
+
+							<section data-transition="slide" data-background="#4d7e65" data-background-transition="zoom">
+								<h2>Inspiration</h2>
+								<p>
+									There is a relevant XKCD for everything
+									<hr>
+
+									<img src="img/xkcd.png" width="50%" height="70%">
+									<hr>
+				           <a href=" http://xkcd.com/210/">Source</a>
+
+								</p>
+
+							</section>
+				<section>
+					<h2>Markov Approach</h2>
+					<ul>
+						<li>Making a Trigram Tagger </li>
+						<li>A Dictionary for a trigram pointing a new word</li>
+						<li>Walking through the dictionary to generate new text</li>
+					</ul>
+				</section>
+				<section>
+					<h2>Example</h2>
+					<b>"The quick brown fox jumps over the brown fox who is slow jumps over the brown fox who is dead."
+
+</b>
+					<hr>
+					<pre><code class="hljs" data-trim contenteditable>
+	  {('The', 'quick'): ['brown'],
+	 ('brown', 'fox'): ['jumps', 'who', 'who'],
+	 ('fox', 'jumps'): ['over'],
+	 ('fox', 'who'): ['is', 'is'],
+	 ('is', 'slow'): ['jumps'],
+	 ('jumps', 'over'): ['the', 'the'],
+	 ('over', 'the'): ['brown', 'brown'],
+	 ('quick', 'brown'): ['fox'],
+	 ('slow', 'jumps'): ['over'],
+	 ('the', 'brown'): ['fox', 'fox'],
+	 ('who', 'is'): ['slow', 'dead.']}
+	</code></pre>
+				</section>
+
+
+				<section>
+					<h3>Generating Triplets | Trigrams</h3>
+					<hr>
+					<pre><code class="hlpy">
+def triples(self):
+
+ if len(self.words) < 3:
+		return
+
+for i in range(len(self.words) - 2):
+	yield (self.words[i], self.words[i+1], self.words[i+2])
+</code></pre>
+
+
+				</section>
+				<section>
+					<h3>Getting Data | Scraping</h3>
+					<hr>
+					<pre><code class="hlpy">
+ import codecs
+ from bs4 import BeautifulSoup
+ from urlparse import urljoin
+
+ base_url = "https://www.musixmatch.com"
+
+ from urllib import urlopen
+     response = BeautifulSoup(urlopen(song_url),"lxml")
+     try:
+        lyric_body = response.find('span',{'id' : 'lyrics-html'})
+        if lyric_body is not None:
+				def get_lyrics(song_url):
+            return lyric_body.text.strip()
+        else:
+            return " "
+     except:
+        pass
+
+ def write_to_file(filename,content):
+     with codecs.open(filename,'a','utf8') as target:
+         target.write(content)
+
+
+ def download_lyrics(category_name):
+    category = category_name
+    response = BeautifulSoup(urlopen(urljoin(base_url,category)),"lxml")
+    songs_list = response.findAll('a',{'class' : 'title'})
+    for songs in songs_list:
+       print "Writing " + songs.text + " lyrics to file  "
+       write_to_file(category.replace("/","") + ".txt" ,get_lyrics(urljoin(base_url,songs["href"])))
+    print "Wrote " + str(len(songs_list)) + " to file "
+
+					</code></pre>
+
+
+				</section>
+			</section>
+
+			<section>
+				<h2>Generating text</h2>
+				<ul>
+					<li>First Pass</li>
+					<li>Second Pass</li>
+				</ul>
+				<hr>
+				Second pass was necessary to get more entropy. So we made a markov engine that consumed output of previous one as output.
+			</section>
+
+			<section data-transition="slide" data-background="#b5533c" data-background-transition="zoom">
+				<h2>Second pass Generator</h2>
+				<pre>
+					<code class="hljs">
+
+	import pymarkov
+	import sys
+	import os
+
+	if len(sys.argv) < 3 :
+	    print "Usage python double_markov.py input_file output_file "
+	    sys.exit()
+
+	input_file = sys.argv[1]
+	output_file = sys.argv[2]
+	temp_file = "temp.txt"
+
+	first_pass = pymarkov.Markov(open(input_file))
+	temp_store = open(temp_file,"a") # Open in append mode
+
+	for el in xrange(0,50): #Train markov for 50 lines
+	     temp_store.write(first_pass.generate_markov_text() + "\n")
+
+
+	temp_store.close() #Closes the buffer
+
+	## Perform a second pass
+
+	second_pass = pymarkov.Markov(open(temp_file))
+	final_store = open(output_file,"a") # Open in append mode
+
+	for el in xrange(0,50): #Train second markov for 50 lines
+	    final_store.write(second_pass.generate_markov_text() + "\n")
+
+	final_store.close() #Writes the output
+
+
+	# Todo improve it to be cross platform
+	return_code = os.system("rm temp.txt")
+
+	if int(return_code) == 0:
+	    print "Temporary files cleaned up successfully"
+	else:
+	    print "Error cleaning up"
+					</code>
+				</pre>
+			</section>
+			<section>
+				<h2>First Pass</h2>
+				<p>
+					Text wasn't as good and seemed less random.
+					<hr>
+
+					<img src="img/first.png" width="50%" height="70%">
+<p class="fragment grow highlight-red">of wine for the last thing I see fire Inside the pocket of your neck Down your shoulders and back We are surrounded by all these'</p>
+				</p>
+
+			</section>
+
+			<section data-transition="slide" data-background="#4d7e65" data-background-transition="zoom">
+				<h2>Second Pass</h2>
+				<p>
+					Text looked good and more randomish
+					<hr>
+
+					<img src="img/second.png" width="50%" height="70%">
+           <p class="fragment grow highlight-green">across the sky me When no one else was ever behind me All these lights, they can't blind me With your love, nobody can drag down</p>
+
+				</p>
+
+			</section>
+
+			<section data-transition="fade" data-background="lime" data-background-transition="zoom">
+	 			 <hr>
+       <p>
+       	Frequency distribution Bollywood | Pass 1
+       </p>
+	 			 <img src="img/figure_1.png" width="50%" height="70%">
+
+
+	 		 </p>
+
+	 	 </section>
+
+
+		 			<section data-transition="fade" data-background="orange" data-background-transition="slide">
+		 	 			 <hr>
+		        <p>
+		        	Frequency distribution Bollywood | Pass 2
+		        </p>
+		 	 			 <img src="img/figure_1-1.png" width="50%" height="70%">
+
+
+		 	 		 </p>
+
+		 	 	 </section>
+
+			<section style="text-align: left;">
+				<h1>THE END</h1>
+
+			</section>
+
+		</div>
+
+	</div>
+
+	<script src="lib/js/head.min.js"></script>
+	<script src="js/reveal.js"></script>
+
+	<script>
+		// Full list of configuration options available at:
+		// https://github.com/hakimel/reveal.js#configuration
+		Reveal.initialize({
+			controls: true,
+			progress: true,
+			history: true,
+			center: true,
+
+			transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+			// Optional reveal.js plugins
+			dependencies: [{
+				src: 'lib/js/classList.js',
+				condition: function() {
+					return !document.body.classList;
+				}
+			}, {
+				src: 'plugin/markdown/marked.js',
+				condition: function() {
+					return !!document.querySelector('[data-markdown]');
+				}
+			}, {
+				src: 'plugin/markdown/markdown.js',
+				condition: function() {
+					return !!document.querySelector('[data-markdown]');
+				}
+			}, {
+				src: 'plugin/highlight/highlight.js',
+				async: true,
+				callback: function() {
+					hljs.initHighlightingOnLoad();
+				}
+			}, {
+				src: 'plugin/zoom-js/zoom.js',
+				async: true
+			}, {
+				src: 'plugin/notes/notes.js',
+				async: true
+			}]
+		});
+	</script>
+
+</body>
+
+</html>
