@@ -1,7 +1,7 @@
 # Rscta
 Contains code and presentation for my submission for National Conference  on Recent Statistical Computing Techniques and their Applications
 
-First part depicts how a Third Order Markov Chain can be used to generate random and yet funny at times text. For this demo, lyrics for  following categories
+First part depicts how a Second Order Markov Chain can be used to generate random and yet funny at times text. For this demo, lyrics for  following categories
  <ul>
   <li> Top Chart WorldWide </li>
   <li> Indian Bollywood </li>
